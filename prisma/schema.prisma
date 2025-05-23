@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  password    String
+  lastName    String       @map("last_name")
+  firstName   String       @map("first_name")
+  patronymic  String
+  dateOfBirth String       @map("date_of_birth")
+  telegramId  String?      @unique @map("telegram_id")
+  roleId      Int          @default(1) @map("role_id")
+  groupId     Int?         @map("group_id")
+  portfolioId Int?         @unique @map("portfolio_id")
+  disciplines Discipline[]
+  grades      Grade[]
+  schedule    Schedule[]
+  group       Group?       @relation(fields: [groupId], references: [id])
+  portfolio   Portfolio?   @relation(fields: [portfolioId], references: [id])
+  role        Role         @relation(fields: [roleId], references: [id])
+
+  HomeworkSubmission     HomeworkSubmission[]
+  NotificationPreference NotificationPreference[]
+
+  @@map("users")
+}
+
+model Portfolio {
+  id           Int           @id @default(autoincrement())
+  category String
+  achievements Achievement[]
+  user         User?
+
+  @@map("portfolios")
+}
+
+model Achievement {
+  id          Int       @id @default(autoincrement())
+  portfolioId Int       @map("portfolio_id")
+  title       String
+  description String?
+  place Int?
+  link String?
+  location String?
+  fileUrl     String    @map("file_url")
+  passed      Boolean   @default(false)
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id])
+
+  @@map("achievements")
+}
+
+model Role {
+  id          Int    @id @default(autoincrement())
+  value       String @unique
+  description String
+  user        User[]
+
+  @@map("roles")
+}
+
+model Group {
+  id           Int        @id @default(autoincrement())
+  name         String     @unique
+  course       Int
+  specialityId Int        @map("speciality_id")
+  speciality   Speciality @relation(fields: [specialityId], references: [id])
+  schedule     Schedule[]
+  students     User[]
+
+  @@map("groups")
+}
+
+model Speciality {
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  duration Int
+  groups   Group[]
+
+  @@map("specialities")
+}
+
+model Discipline {
+  id        Int        @id @default(autoincrement())
+  name      String
+  teacherId Int        @map("teacher_id")
+  teacher   User       @relation(fields: [teacherId], references: [id])
+  schedule  Schedule[]
+
+  @@map("disciplines")
+}
+
+model Schedule {
+  id           Int        @id @default(autoincrement())
+  orderNumber  Int        @map("order_number")
+  groupId      Int        @map("group_id")
+  disciplineId Int        @map("discipline_id")
+  teacherId    Int        @map("teacher_id")
+  dayOfWeek    Int        @map("day_of_week")
+  room         String
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  lessons      Lesson[]
+  discipline   Discipline @relation(fields: [disciplineId], references: [id])
+  group        Group      @relation(fields: [groupId], references: [id])
+  teacher      User       @relation(fields: [teacherId], references: [id])
+
+  @@map("schedule")
+}
+
+model Lesson {
+  id Int @id @default(autoincrement())
+
+  scheduleId Int      @map("schedule_id")
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+
+  date         String
+  topic        String?
+  typeOfLesson String
+  grades       Grade[]
+  homework     Homework?
+
+  @@map("lessons")
+}
+
+model Homework {
+  id Int @id @default(autoincrement())
+
+  lessonId Int    @unique @map("lesson_id")
+  lesson   Lesson @relation(fields: [lessonId], references: [id])
+
+  title       String
+  description String?
+  dueDate     String               @map("due_date")
+  fileUrl     String?              @map("file_url")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  submissions HomeworkSubmission[]
+
+  @@map("homeworks")
+}
+
+model HomeworkSubmission {
+  id Int @id @default(autoincrement())
+
+  homeworkId Int      @map("homework_id")
+  homework   Homework @relation(fields: [homeworkId], references: [id])
+
+  studentId Int  @map("student_id")
+  student   User @relation(fields: [studentId], references: [id])
+
+  fileUrl   String?  @map("file_url")
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  grade     Grade?
+
+  @@map("homework_submissions")
+}
+
+model Grade {
+  id                   Int  @id @default(autoincrement())
+  lessonId             Int  @map("lesson_id")
+  studentId            Int  @map("student_id")
+  homeworkSubmissionId Int? @unique @map("homework_submission_id")
+
+  attend             Boolean             @default(true)
+  grade              Int?
+  comment            String?
+  createdAt          DateTime            @default(now()) @map("created_at")
+  lesson             Lesson              @relation(fields: [lessonId], references: [id])
+  student            User                @relation(fields: [studentId], references: [id])
+  homeworkSubmission HomeworkSubmission? @relation(fields: [homeworkSubmissionId], references: [id])
+
+  @@map("grades")
+}
+
+model NotificationPreference {
+  id      Int     @id @default(autoincrement())
+  userId  Int     @map("user_id")
+  type    String
+  enabled Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type])
+  @@map("notification_preferences")
+}
