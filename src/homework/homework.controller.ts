@@ -47,14 +47,13 @@ export class HomeworkController {
     const fileUrl = `/uploads/homeworks/${file.filename}`;
     const lessonId = Number(createHomeworkDto.lessonId);
 
-    
-  return this.homeworkService.create(
-    {
-      ...createHomeworkDto,
-      lessonId,
-    },
-    fileUrl,
-  );
+    return this.homeworkService.create(
+      {
+        ...createHomeworkDto,
+        lessonId,
+      },
+      fileUrl,
+    );
   }
 
   @Get()
@@ -73,14 +72,41 @@ export class HomeworkController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateHomeworkDto) {
-    return this.homeworkService.update(+id, dto);
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/homeworks',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        cb(null, true);
+      },
+    }),
+  )
+  update(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: UpdateHomeworkDto,
+  ) {
+    const lessonId = Number(dto.lessonId);
+    const fileUrl = file ? `/uploads/homeworks/${file.filename}` : undefined;
+
+    return this.homeworkService.update(
+      Number(id),
+      {
+        ...dto,
+        lessonId,
+      },
+      fileUrl,
+    );
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.homeworkService.remove(+id);
   }
-
-  
 }

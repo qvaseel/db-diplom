@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreateGradeDto } from './dto/create-grade.dto';
 import { TelegramService } from 'src/telegram/telegram.service';
-import { scheduled } from 'rxjs';
 
 @Injectable()
 export class GradeService {
@@ -57,6 +56,7 @@ export class GradeService {
     return await this.prisma.grade.findMany({
       where: {
         lesson: { schedule: { groupId: groupId, disciplineId: disciplineId } },
+        homeworkSubmissionId: null,
       },
       include: { lesson: true, student: true },
     });
@@ -73,6 +73,30 @@ export class GradeService {
       },
     });
   }
+
+async findAllByDateForStudent(date: string, studentId: number) {
+  return this.prisma.grade.findMany({
+    where: {
+      lesson: {
+        date: date,
+      },
+      studentId: studentId,
+    },
+    include: {
+      lesson: {
+        include: 
+          {schedule:
+            {include: {discipline: true, teacher: true, group: true,},
+          },
+          homework: { include: {submissions: true}},
+          
+        },
+      },
+      homeworkSubmission: true
+    },
+  });
+}
+
 
   public async update(id: number, data: Partial<CreateGradeDto>) {
     const grade = await this.prisma.grade.update({
@@ -110,12 +134,14 @@ export class GradeService {
     const teacher =
       lesson.schedule.teacher.firstName +
       ' ' +
+      lesson.schedule.teacher.patronymic +
+      ' ' +
       lesson.schedule.teacher.lastName;
     const topic = lesson.topic || 'Не указано';
     const date = lesson.date || 'Не указано';
     const type = lesson.typeOfLesson || 'Не указано';
     
-    const message = `📢 Вам выставлена новая оценка по дисциплина: ${discipline}\n👨‍🏫 Преподаватель: ${teacher}\n🎯 За "${type}" по теме: ${topic}\n📝 Комментарий: ${comment ?? '—'}\n💯 Оценка: ${gradeValue ?? 'не указана'}\n📅 Дата: ${date ?? 'не указана'}`;
+    const message = `📢 Вам выставлена новая оценка по дисциплине: ${discipline}\n👨‍🏫 Преподаватель: ${teacher}\n🎯 За "${type}" по теме: ${topic}\n📝 Комментарий: ${comment ?? '—'}\n💯 Оценка: ${gradeValue ?? 'не указана'}\n📅 Дата: ${date ?? 'не указана'}`;
 
     await this.telegramService.sendMessage(telegramId, message);
   }

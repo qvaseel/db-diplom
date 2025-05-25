@@ -12,12 +12,12 @@ export class LessonController {
     return this.lessonService.create(data);
   }
 
-  @Get('/:id')
+  @Get('/get-one/:id')
   async getOneById(@Param('id') id: number) {
     return this.lessonService.findOne(Number(id));
   }
 
-  @Get()
+  @Get('/get-all-by-group-and-discipline')
   async getAllByParams(
     @Query('groupId') groupId: number,
     @Query('disciplineId') disciplineId: number,
@@ -26,6 +26,12 @@ export class LessonController {
       Number(groupId),
       Number(disciplineId),
     );
+  }
+
+  @Get('/get-all-by-date/:date')
+  async getAllByDate(@Param('date') date: string) {
+    const lessons = this.lessonService.findAllByDate(date);
+    return lessons;
   }
 
   @Patch('/:id')

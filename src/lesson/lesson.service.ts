@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class LessonService {
@@ -29,6 +30,17 @@ export class LessonService {
       include: {
         grades: true,
         schedule: { include: { discipline: true, group: true } },
+      },
+    });
+  }
+
+  async findAllByDate(date: string) {
+    return this.prisma.lesson.findMany({
+      where: { date: date },
+      include: {
+        grades: true,
+        schedule: { include: { discipline: true, group: true, teacher: true } },
+        homework: true,
       },
     });
   }
