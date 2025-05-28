@@ -138,7 +138,11 @@ async findAllByDateForStudent(date: string, studentId: number) {
       ' ' +
       lesson.schedule.teacher.lastName;
     const topic = lesson.topic || 'Не указано';
-    const date = lesson.date || 'Не указано';
+    const date = new Date(lesson.date).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }) || 'не указано';;
     const type = lesson.typeOfLesson || 'Не указано';
     
     const message = `📢 Вам выставлена новая оценка по дисциплине: ${discipline}\n👨‍🏫 Преподаватель: ${teacher}\n🎯 За "${type}" по теме: ${topic}\n📝 Комментарий: ${comment ?? '—'}\n💯 Оценка: ${gradeValue ?? 'не указана'}\n📅 Дата: ${date ?? 'не указана'}`;

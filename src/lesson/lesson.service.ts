@@ -56,7 +56,18 @@ export class LessonService {
     });
   }
 
-  async delete(id: number) {
-    return await this.prisma.lesson.delete({ where: { id: id } });
-  }
+async delete(id: number) {
+  // Удаляем связанные оценки
+  await this.prisma.grade.deleteMany({
+    where: { lessonId: id },
+  });
+
+  await this.prisma.homework.deleteMany({ where: { lessonId: id } });
+
+
+  // Удаляем сам урок
+  return await this.prisma.lesson.delete({
+    where: { id },
+  });
+}
 }

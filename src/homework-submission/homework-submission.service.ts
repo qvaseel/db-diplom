@@ -158,7 +158,11 @@ export class HomeworkSubmissionService {
       lesson.schedule.teacher.patronymic +
       ' ' +
       lesson.schedule.teacher.lastName;
-    const date = lesson.date || 'Не указано';
+    const date = new Date(lesson.date).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }) || 'не указано';
 
     const message = `📢 Вам выставлена оценка за домашнее задание по дисциплине: ${discipline}\n👨‍🏫 Преподаватель: ${teacher} \n📝 Комментарий: ${comment ?? '—'}\n💯 Оценка: ${gradeValue ?? 'не указана'}\n📅 Дата: ${date ?? 'не указана'}`;
 

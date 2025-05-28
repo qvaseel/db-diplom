@@ -15,7 +15,7 @@ model User {
   firstName   String       @map("first_name")
   patronymic  String
   dateOfBirth String       @map("date_of_birth")
-  telegramId  String?      @unique @map("telegram_id")
+  telegramId  String?      @map("telegram_id")
   roleId      Int          @default(1) @map("role_id")
   groupId     Int?         @map("group_id")
   portfolioId Int?         @unique @map("portfolio_id")
@@ -175,6 +175,9 @@ model Grade {
   lesson             Lesson              @relation(fields: [lessonId], references: [id])
   student            User                @relation(fields: [studentId], references: [id])
   homeworkSubmission HomeworkSubmission? @relation(fields: [homeworkSubmissionId], references: [id])
+
+  isHomework Boolean @map("is_homework") @default(false)
+  isPassed Boolean @map("is_passed") @default(false)
 
   @@map("grades")
 }
