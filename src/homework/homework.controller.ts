@@ -89,8 +89,8 @@ export class HomeworkController {
   )
   update(
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateHomeworkDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const lessonId = Number(dto.lessonId);
     const fileUrl = file ? `/uploads/homeworks/${file.filename}` : undefined;

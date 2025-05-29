@@ -10,7 +10,7 @@ import { group } from 'console';
 export class HomeworkService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createHomeworkDto: CreateHomeworkDto, fileUrl: string) {
+  async create(createHomeworkDto: CreateHomeworkDto, fileUrl?: string) {
     const lesson = await this.prisma.lesson.findUnique({
       where: { id: Number(createHomeworkDto.lessonId) },
       include: {
